@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from sklearn.svm import LinearSVC
 import pandas as pd
 from matplotlib import style
+from random import randint
 style.use("ggplot")
 
 #supporting functions
@@ -44,6 +45,8 @@ for row in data:
 #X represents our points and Y their labels
 X =np.array(X);
 y = np.array(y);
+Xinit = X  #To preserve it
+yinit = y
 
 
 #loading unlabelled data
@@ -59,7 +62,7 @@ for row in udata:
 Xu =np.array(Xu);
 yu = np.array(yu);
 
-
+score1 = [];
 maxIter=10;
 i=0;
 for i in range(maxIter):
@@ -71,7 +74,10 @@ for i in range(maxIter):
     w = clf.coef_[0];
     print("Hyperplane paramters :"+str(w));
     print("Score :",end='');
-    print(clf.score(Xu,yu,sample_weight=None),end='\n\n\n');
+    score1.append(clf.score(Xu,yu,sample_weight=None))
+    print(score1[-1]);
+    #print("TestScore:",end='');
+    #print(clf.score(X,y,sample_weight=None),end='\n\n\n');
 
     closeIdx  =ClosestToLine(clf.coef_[0],Xu,clf.intercept_[0])
     close = Xu[closeIdx]
@@ -87,3 +93,34 @@ for i in range(maxIter):
     y.append(yu[closeIdx]);
     y = np.array(y);
 
+score2 = [];
+i=0;
+X = Xinit
+y = yinit
+for i in range(maxIter):
+#training our svm classifer
+    clfRnd = LinearSVC(random_state=0)
+    clfRnd.fit(X,y);
+    w = clfRnd.coef_[0];
+    score2.append(clfRnd.score(Xu,yu,sample_weight=None))
+    print(score2[-1]);
+
+#add random point to our data
+    Idx  = randint(0,99);
+    print(Idx);
+    X = X.tolist();
+    X.append(Xu[Idx]);
+    X = np.array(X);
+    y = y.tolist();
+    y.append(yu[Idx]);
+    y = np.array(y);
+
+print("Comparisn between random selection of points and closest to hyperplane selection of points :");
+print("\n\n\n");
+
+plt.clf();
+plt.plot(score1,'r-');
+plt.plot(score2,'b-');
+plt.ylabel('Score (accuracy)');
+plt.xlabel('No of data points added');
+plt.show();
